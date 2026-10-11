@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Parallel Computing Mini-Project Report: OpenMP vs MPI</title>
+<title>Performance Analysis: OpenMP vs MPI for Large-Scale Data Processing</title>
 <style>
     @page {
         size: A4;
@@ -25,11 +25,11 @@
     }
     .header-box h1 {
         margin: 0 0 10px 0;
-        font-size: 26px;
+        font-size: 24px;
     }
     .header-box p {
         margin: 4px 0;
-        font-size: 14px;
+        font-size: 13px;
         color: #e0f2f1;
     }
     h2 {
@@ -37,12 +37,12 @@
         border-bottom: 2px solid #107c82;
         padding-bottom: 6px;
         margin-top: 30px;
-        font-size: 20px;
+        font-size: 18px;
     }
     h3 {
         color: #107c82;
         margin-top: 20px;
-        font-size: 16px;
+        font-size: 15px;
     }
     table {
         width: 100%;
@@ -89,18 +89,6 @@
         margin-top: 8px;
         font-weight: bold;
     }
-    .qa-box {
-        background: #f1f8f9;
-        border-left: 4px solid #107c82;
-        padding: 14px 18px;
-        margin: 15px 0;
-        border-radius: 0 6px 6px 0;
-    }
-    .qa-question {
-        font-weight: bold;
-        color: #182b49;
-        margin-bottom: 6px;
-    }
     code {
         background: #eef2f5;
         padding: 2px 6px;
@@ -124,27 +112,26 @@
 <body>
 
 <div class="header-box">
-    <h1>Parallel Computing Mini-Project: Lab Evaluation Report</h1>
-    <p><strong>Topic #9:</strong> OpenMP vs MPI for Data Processing (OpenMP + MPI)</p>
-    <p><strong>Course:</strong> Parallel Computing Laboratory | 5 Checkpoints Complete</p>
+    <h1>Comparative Performance Analysis of OpenMP vs. MPI for Data Processing</h1>
+    <p><strong>Author:</strong> Vinay Hiremath | Parallel & Distributed Computing</p>
     <p><strong>Benchmarked System:</strong> 13th Gen Intel Core i5-13420H (8 Cores, 12 Threads) | Windows 11</p>
 </div>
 
 <h2>Executive Summary</h2>
 <p>
-This report presents a thorough empirical and architectural evaluation comparing <strong>OpenMP</strong> (Shared Memory) and <strong>MPI</strong> (Distributed Memory) paradigms for large-scale data processing workloads. We implemented a dual-phase data processing kernel comprising multi-variable parallel statistical reductions (Sum, Min, Max, Mean, Variance, Std Deviation) followed by a dependent conditional filtering pass ($x_i > \mu$).
+This report presents an empirical performance evaluation comparing <strong>OpenMP</strong> (Shared Memory) and <strong>MPI</strong> (Distributed Memory) paradigms for large-scale data processing workloads. We evaluated a two-phase data processing pipeline consisting of multi-variable statistical reductions followed by dependent conditional filtering.
 </p>
 <p>
 Across four dataset sizes up to <strong>50 Million elements</strong> and concurrency levels from <strong>1 to 12 workers</strong>, OpenMP delivered up to <strong>3.27x speedup</strong> (25.10 ms) and MPI achieved up to <strong>3.42x speedup</strong> (24.00 ms), representing a processing throughput exceeding <strong>2.08 Billion items/sec</strong> compared to 610 Million items/sec on the sequential baseline.
 </p>
 
-<h2>Checkpoint 1: Problem Definition & Parallel Architectural Design</h2>
+<h2>1. Problem Definition & Architectural Design</h2>
 <p>
-The core challenge in parallel data processing is decomposing memory-intensive workloads while balancing thread coordination overhead against computational speedup. The processing pipeline consists of:
+The processing pipeline executes two computational passes over an array of <em>N</em> double-precision floating-point numbers:
 </p>
 <ul>
-    <li><strong>Pass 1 (Reductions):</strong> Accumulates Sum, Sum of Squares, Minimum, and Maximum. From these, Global Mean &mu;, Variance &sigma;&sup2;, and Standard Deviation &sigma; are calculated in O(1) time.</li>
-    <li><strong>Pass 2 (Dependent Filter):</strong> Counts elements strictly greater than the dataset mean (x_i &gt; &mu;). This pass highlights inter-phase synchronization costs.</li>
+    <li><strong>Pass 1 (Reductions):</strong> Accumulates Sum, Sum of Squares, Minimum, and Maximum. Mean, Variance, and Standard Deviation are calculated in O(1) time.</li>
+    <li><strong>Pass 2 (Dependent Filter):</strong> Counts elements strictly greater than the dataset mean (x_i &gt; &mu;).</li>
 </ul>
 
 <table>
@@ -181,9 +168,9 @@ The core challenge in parallel data processing is decomposing memory-intensive w
 
 <div class="page-break"></div>
 
-<h2>Checkpoint 2: Working Parallel Implementation Details</h2>
+<h2>2. Implementation Details</h2>
 <p>
-Both implementations were engineered in ANSI C, compiled with GCC <code>-O3</code> optimizations, and mathematically verified to yield 100% bitwise identical results.
+All implementations were engineered in ANSI C, compiled with GCC <code>-O3</code> optimizations, and verified to yield bitwise identical outputs.
 </p>
 
 <h3>OpenMP Implementation Structure</h3>
@@ -222,7 +209,7 @@ MPI_Bcast(&amp;global_mean, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 // Pass 2: Local conditional filter and final reduction
 MPI_Reduce(&amp;local_above_count, &amp;global_above_count, 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);</code></pre>
 
-<h2>Checkpoint 3: Empirical Benchmark Results</h2>
+<h2>3. Experimental Benchmark Results</h2>
 <table>
     <thead>
         <tr>
@@ -272,7 +259,7 @@ MPI_Reduce(&amp;local_above_count, &amp;global_above_count, 1, MPI_LONG_LONG, MP
 
 <div class="page-break"></div>
 
-<h2>Checkpoint 4: Graphical Analysis & Discussion</h2>
+<h2>4. Graphical Analysis & Discussion</h2>
 
 <div class="img-grid">
     <div class="img-card">
@@ -293,34 +280,12 @@ MPI_Reduce(&amp;local_above_count, &amp;global_above_count, 1, MPI_LONG_LONG, MP
     </div>
 </div>
 
-<h3>Quantitative Insights</h3>
+<h3>Performance Insights</h3>
 <ol>
-    <li><strong>Amdahl's Law Saturation:</strong> Speedup scales cleanly from 1 to 4 cores, peaking around 8 cores. Beyond 8 cores, memory bandwidth saturation on the host memory bus prevents further linear scaling.</li>
-    <li><strong>Cache Locality & Isolation:</strong> MPI performs exceptionally well at 50M elements because 1D domain decomposition ensures each process works within its own isolated L2/L3 cache slices, avoiding thread cache contention.</li>
-    <li><strong>Efficiency Trade-off:</strong> Efficiency remains above 75% at 4 cores, identifying 4-8 workers as the optimal operational sweet spot.</li>
+    <li><strong>Amdahl's Law Saturation:</strong> Speedup scales cleanly up to 4 cores, peaking around 8 cores. Beyond 8 cores, memory bus contention bounds further scaling.</li>
+    <li><strong>Cache Locality & Isolation:</strong> MPI performs well at 50M elements because 1D domain decomposition ensures each process works within its isolated L2/L3 cache footprint.</li>
+    <li><strong>Efficiency Balance:</strong> Parallel efficiency remains above 75% at 4 cores, identifying 4-8 workers as the optimal operational point.</li>
 </ol>
-
-<h2>Checkpoint 5: Technical Viva Preparation</h2>
-
-<div class="qa-box">
-    <div class="qa-question">Q1: Why did Pass 2 require MPI_Bcast in MPI but nothing in OpenMP?</div>
-    <div>In OpenMP, the global mean is stored in shared virtual memory, allowing all threads to read it immediately. In MPI, each process possesses an isolated address space; Rank 0 must explicitly broadcast the mean to all ranks using <code>MPI_Bcast</code>.</div>
-</div>
-
-<div class="qa-box">
-    <div class="qa-question">Q2: How does OpenMP prevent race conditions during parallel reductions?</div>
-    <div>The <code>reduction(+:variable)</code> pragma allocates a private accumulator per thread during the parallel loop. Upon loop completion, the OpenMP runtime atomically combines these private values into the shared variable.</div>
-</div>
-
-<div class="qa-box">
-    <div class="qa-question">Q3: Why does performance saturate beyond 8 cores on this CPU?</div>
-    <div>The host machine features an Intel Core i5-13420H with 8 physical cores and 12 logical threads. Beyond 8 physical cores, hyperthreads share physical execution units. Additionally, streaming data processing is memory-bandwidth bound.</div>
-</div>
-
-<div class="qa-box">
-    <div class="qa-question">Q4: What is the communication complexity of collective operations?</div>
-    <div>Modern MPI libraries implement <code>MPI_Reduce</code> and <code>MPI_Bcast</code> using binomial or butterfly trees with O(log P) communication latency, avoiding O(P) master node bottlenecks.</div>
-</div>
 
 </body>
 </html>

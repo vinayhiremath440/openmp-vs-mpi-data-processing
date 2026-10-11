@@ -105,7 +105,7 @@ def create_title_slide(prs):
     p2.space_after = Pt(25)
 
     p3 = tf.add_paragraph()
-    p3.text = "Theme: OpenMP vs MPI Data Processing  |  Model: OpenMP + MPI\nCheckpoint 1 - 5 Implementation  |  Academic Year 2026-2027"
+    p3.text = "Author: Vinay Hiremath\nDomain: Parallel & Distributed Computing\nTheme: OpenMP vs MPI for Data Processing"
     p3.font.size = Pt(11)
     p3.font.color.rgb = RGBColor(164, 176, 190)
 
@@ -216,14 +216,13 @@ def build_presentation():
     # Slide 1: Title
     create_title_slide(prs)
 
-    # Slide 2: Project Objectives & Evaluation Checkpoints
-    create_bullet_slide(prs, "1. Project Objectives & Evaluation Checkpoints", [
-        ("Core Task (Topic 9)", "Perform identical numerical dataset operation using OpenMP and MPI, benchmarking runtime, speedup, and scalability."),
-        ("Checkpoint 1: Problem Definition & Sequential Algorithm (2 Marks)", "Formal mathematical modeling of dataset operations (Reductions + Conditional Filtering) and sequential baseline."),
-        ("Checkpoint 2: Working Parallel Implementation (2 Marks)", "Implementation using OpenMP multithreading (shared memory) and MS-MPI message passing (distributed memory)."),
-        ("Checkpoint 3: Empirical Benchmarking Across Scales (2 Marks)", "Systematic testing across dataset sizes (5M to 50M) and worker counts (1 to 12 threads/processes) with 3 repetitions."),
-        ("Checkpoint 4: Visualization & Performance Analysis (2 Marks)", "Speedup curves, Amdahl's Law validation, and parallel efficiency profiling with high-resolution plots."),
-        ("Checkpoint 5: Technical Viva & Verification (2 Marks)", "Complete conceptual and architectural readiness for guide questions and live demonstration.")
+    # Slide 2: Project Objectives & Motivation
+    create_bullet_slide(prs, "1. Project Motivation & Research Objectives", [
+        ("Core Objective", "Implement identical numerical dataset operations in OpenMP and MPI to quantitatively evaluate latency, speedup, and scalability."),
+        ("Multi-Paradigm Study", "Benchmarking shared-memory thread parallelism (OpenMP) against distributed-memory message passing (MPI) with zero computational drift."),
+        ("Multi-Scale Experimental Grid", "Systematic evaluation across dataset sizes (5M to 50M doubles) and worker counts (1 to 12 threads/processes)."),
+        ("Architectural Analysis", "Evaluating Amdahl's Law, parallel efficiency decay, memory bus contention, and collective communication overhead."),
+        ("Performance Metrics", "Measuring wall-clock time (ms), speedup factor S, parallel efficiency E (%), and processing throughput (Million items/sec).")
     ])
 
     # Slide 3: Problem Definition & Mathematical Formulation
@@ -311,12 +310,12 @@ def build_presentation():
         ["Best Used For", "Local compute-heavy loops & SMP", "Large clusters & Big Data HPC", "Small / single-threaded tasks"]
     ])
 
-    # Slide 12: Guide Viva Questions & Technical Answers
-    create_bullet_slide(prs, "11. Technical Viva Questions & Detailed Answers", [
-        ("Q1: Why did Pass 2 require MPI_Bcast in MPI but nothing in OpenMP?", "In OpenMP, global mean is stored in shared RAM, so all threads read it directly. In MPI, each process has an isolated memory space; rank 0 must explicitly broadcast the mean to other ranks."),
-        ("Q2: Why does speedup saturate beyond 8 cores on this machine?", "The Intel i5-13420H has 8 physical cores and 4 efficiency/SMT hyperthreads. Additionally, data processing is memory-bandwidth bound; RAM bus saturation limits further scaling."),
-        ("Q3: How does OpenMP handle race conditions during reduction?", "The reduction clause generates private accumulator variables for each thread. At the end of the parallel region, OpenMP combines private values into the shared variable using atomic hardware operations."),
-        ("Q4: What is the communication complexity of MPI_Reduce and MPI_Bcast?", "Both use binomial or butterfly tree algorithms with O(log P) communication steps, avoiding an O(P) bottleneck at rank 0.")
+    # Slide 12: Architectural Discussion & Scalability Insights
+    create_bullet_slide(prs, "11. Architectural Discussion & Scalability Insights", [
+        ("Shared vs. Distributed Memory Trade-offs", "OpenMP excels on single-node SMP systems with zero message serialization overhead. MPI provides superior cache isolation through 1D domain decomposition."),
+        ("Collective Communication Latency", "MPI requires explicit synchronization (MPI_Bcast, MPI_Reduce) using binomial spanning trees with O(log P) complexity to distribute and reduce variables."),
+        ("Memory Bus & Roofline Limits", "Speedup saturation beyond 8 cores is governed by memory bandwidth limits on the host memory controller when processing contiguous floating-point streams."),
+        ("Heterogeneous Core Scaling", "Intel hybrid architectures (P-cores vs E-cores) and hyperthreading (SMT) deliver diminishing efficiency returns compared to dedicated physical execution units.")
     ])
 
     # Slide 13: Conclusion & Future Scope

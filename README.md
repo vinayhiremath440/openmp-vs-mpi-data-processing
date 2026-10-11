@@ -1,131 +1,172 @@
-# Parallel Computing Mini-Project: OpenMP vs MPI for Data Processing
+# Comparative Performance Analysis of OpenMP vs. MPI for Large-Scale Data Processing
 
-**Course:** Parallel Computing (Semester 5 Lab Evaluation)  
-**Topic #9:** OpenMP vs MPI for Data Processing (`OpenMP + MPI`)  
-**Task:** Perform the same simple dataset operation using OpenMP and MPI and compare results.  
-**Academic Year:** 2026-2027  
+A high-performance computing project benchmarking shared-memory multi-threading (**OpenMP**) against distributed-memory message passing (**MPI**) on numerical data processing pipelines.
 
 ---
 
-## 👥 Team Information
-- **Team Number:** Topic 9 / Team 9
-- **Student Name:** [Your Name / Team Lead]
-- **USN / Roll Number:** [Your Roll / USN Number]
-- **Department:** Computer Science & Engineering
-- **Guide / Evaluator:** [Guide / Faculty Name]
+## 👨‍💻 Project Overview
+- **Author:** Vinay Hiremath
+- **Domain:** Parallel & Distributed Computing
+- **Parallel Models:** OpenMP (Shared Memory SMP) vs. MPI (Distributed Memory Message Passing)
+- **Primary Language:** C (GCC with `-O3` optimization)
+- **Runtime Environment:** Microsoft Windows 11 (64-bit), MinGW-w64, Microsoft MPI (MS-MPI)
 
 ---
 
-## 🎯 Project Objective
+## 📌 Abstract & Motivation
 
-The primary objective of this project is to perform a rigorous comparative performance evaluation between **OpenMP** (Shared-Memory Multi-threading) and **MPI** (Distributed-Memory Message Passing) when executing identical numerical data processing operations on large datasets.
+As dataset sizes scale exponentially in big data analytics, financial modeling, and scientific simulations, choosing the appropriate parallelization paradigm is critical for computational efficiency and scalability.
 
-We evaluate:
-1. **Execution Time (Latency):** Wall-clock execution time across dataset scales ($5 \times 10^6$ to $50 \times 10^6$ double-precision numbers).
-2. **Speedup ($S$):** Scaling factor relative to the single-threaded sequential baseline across 1 to 12 threads/processes.
-3. **Parallel Efficiency ($E$):** Resource utilization efficiency ($S / P \times 100\%$).
-4. **Processing Throughput:** Millions of dataset elements processed per second.
-5. **Architectural Trade-offs:** Memory footprint, synchronization overhead, cache locality, and programming complexity.
+This project investigates the performance characteristics, scaling behavior, and architectural trade-offs between two fundamental parallel computing models:
+1. **OpenMP (Shared Memory):** Thread-based parallelism operating within a single unified virtual memory space.
+2. **MPI (Distributed Memory):** Process-based parallelism operating across isolated address spaces via explicit message-passing communication.
+
+Both models are benchmarked against an optimized single-threaded **Sequential Baseline** across varying dataset sizes (from **5 Million** to **50 Million** double-precision floating-point records) and concurrency levels (1, 2, 4, 8, and 12 workers) on a multi-core processor.
 
 ---
 
-## 🧮 Data Processing Workload & Algorithmic Design
+## 🔬 Mathematical Workload & Algorithmic Formulation
 
-The chosen benchmark performs a dual-phase data processing operation typical in statistical computing and data filtering:
+To realistically evaluate parallel performance beyond trivial single-loop operations, this project implements a **two-phase data processing pipeline** representing typical aggregation and filtering workloads.
 
-### Phase 1: Aggregate Reductions (Statistical Metrics)
-Given an array $D = \{x_0, x_1, \dots, x_{N-1}\}$ of $N$ double-precision values ($x_i \in [0.00, 9999.99]$):
-- **Sum:** $S = \sum_{i=0}^{N-1} x_i$
-- **Sum of Squares:** $S_{sq} = \sum_{i=0}^{N-1} x_i^2$
-- **Extrema:** $x_{min} = \min_{0 \le i < N} x_i, \quad x_{max} = \max_{0 \le i < N} x_i$
-- **Mean:** $\mu = \frac{S}{N}$
-- **Variance:** $\sigma^2 = \frac{S_{sq}}{N} - \mu^2$
-- **Standard Deviation:** $\sigma = \sqrt{\max(0, \sigma^2)}$
+Let $D = \{x_0, x_1, x_2, \dots, x_{N-1}\}$ represent an array of $N$ double-precision values ($x_i \in [0.00, 9999.99]$).
+
+### Phase 1: Statistical Reductions
+Compute descriptive statistical moments and extrema across array $D$:
+- **Sum:**  
+  $$S = \sum_{i=0}^{N-1} x_i$$
+- **Sum of Squares:**  
+  $$S_{sq} = \sum_{i=0}^{N-1} x_i^2$$
+- **Extrema:**  
+  $$x_{min} = \min_{0 \le i < N} x_i, \quad x_{max} = \max_{0 \le i < N} x_i$$
+- **Dataset Mean:**  
+  $$\mu = \frac{S}{N}$$
+- **Variance & Standard Deviation:**  
+  $$\sigma^2 = \frac{S_{sq}}{N} - \mu^2, \quad \sigma = \sqrt{\max(0, \sigma^2)}$$
 
 ### Phase 2: Dependent Conditional Filtering
-- **Count Elements Exceeding Mean:**  
-  $$C = \sum_{i=0}^{N-1} \mathbb{I}(x_i > \mu)$$
-  *(where $\mathbb{I}$ is the indicator condition)*
+Filter and count all records strictly exceeding the computed global mean:
+$$C = \sum_{i=0}^{N-1} \mathbb{I}(x_i > \mu)$$
+*(where $\mathbb{I}$ is the indicator function)*
 
-> **Why this operation is ideal for evaluation:**  
-> Phase 2 has a strict data dependency on Phase 1 ($\mu$ must be completely resolved before filtering begins). This directly demonstrates how OpenMP handles implicit memory sharing versus how MPI requires an explicit collective broadcast (`MPI_Bcast`) to disseminate the global mean to worker ranks.
+> **Architectural Significance:**  
+> Phase 2 creates an explicit cross-phase dependency on $\mu$. In OpenMP, $\mu$ is stored in shared virtual memory and read directly by all worker threads. In MPI, each process has an isolated memory space; hence, Rank 0 must explicitly broadcast $\mu$ using `MPI_Bcast` before distributed worker ranks can execute Phase 2.
 
 ---
 
-## 🏗️ Repository Structure
-
-This repository strictly complies with the evaluation guidelines:
+## 🏛️ Parallel Architectural Design
 
 ```text
-exp-name-parallel-computing/
-|-- README.md                    # Project documentation, build instructions & results summary
-|-- build.bat                    # Automated Windows build script for all 3 targets
-|-- run_benchmarks.py            # Automated multi-core benchmarking suite across data sizes
-|-- generate_graphs.py           # Publication-quality plotting script for metrics
-|-- bin/                         # Compiled executables & runtime DLLs
-|   |-- sequential.exe           # Sequential baseline binary
-|   |-- openmp_processing.exe    # OpenMP parallel binary
-|   `-- mpi_processing.exe       # MPI distributed binary
-|-- src/                         # Source code files
-|   |-- sequential.c             # C sequential implementation
-|   |-- openmp_processing.c      # C OpenMP multi-threaded implementation
-|   `-- mpi_processing.c         # C MPI distributed implementation
-|-- data/                        # Dataset scripts
-|   `-- generate_dataset.py      # Python dataset generator (CSV & binary format)
-|-- results/                     # Raw and summary experimental timing data
-|   |-- raw_benchmark_runs.csv   # Raw execution logs (all repetitions)
-|   |-- benchmark_summary.csv    # Aggregated results (averages, speedup, efficiency)
-|   `-- benchmark_summary.txt    # Human-readable formatted summary table
-|-- graphs/                      # High-resolution comparison plots
-|   |-- execution_time_vs_datasize.png
-|   |-- speedup_vs_cores.png
-|   |-- efficiency_vs_cores.png
-|   `-- throughput_scalability.png
-|-- report/                      # Academic Project Report
-|   |-- Lab_Evaluation_Report.md # Full Markdown report
-|   |-- Lab_Evaluation_Report.html # Styled HTML report with embedded visuals
-|   `-- Lab_Evaluation_Report.pdf  # Print-ready academic PDF report
-`-- presentation/                # Lab Evaluation Slide Deck
-    `-- OpenMP_vs_MPI_Data_Processing.pptx  # Single comprehensive PPTX presentation
++-----------------------------------------------------------------------------+
+|                               PARALLEL MODELS                               |
++------------------------------------+----------------------------------------+
+|       OpenMP (Shared Memory)       |       MPI (Distributed Memory)         |
++------------------------------------+----------------------------------------+
+|                                    |                                        |
+|         Unified Address Space      |   Rank 0       Rank 1       Rank P-1   |
+|     +----------------------------+ |   +------+     +------+     +------+   |
+|     |     Shared Array D[0..N]   | |   |Part 0|     |Part 1|     |Part P|   |
+|     +----------------------------+ |   +------+     +------+     +------+   |
+|       Thread 0  Thread 1  Thread P |      \            |            /       |
+|          \         |         /     |       \           |           /        |
+|           \        |        /      |        -->  MPI_Reduce (Sum) <--       |
+|       #pragma omp parallel for     |                   |                    |
+|       reduction(+:sum, sum_sq)     |             Compute Mean (mu)          |
+|       reduction(min:min_val)       |                   |                    |
+|       reduction(max:max_val)       |        <--   MPI_Bcast (mu)   -->      |
+|                   |                |                   |                    |
+|       Compute Mean (shared RAM)    |       Local Filtering (x > mu)         |
+|                   |                |                   |                    |
+|       Parallel Filter Reduction    |        -->  MPI_Reduce (Count) <--     |
++------------------------------------+----------------------------------------+
+```
+
+### 1. Sequential Baseline (`src/sequential.c`)
+- Single-threaded execution compiled with `-O3`.
+- Linear scan through memory with sub-microsecond precision timing via Windows `QueryPerformanceCounter` (QPC).
+
+### 2. OpenMP Implementation (`src/openmp_processing.c`)
+- Uses `#pragma omp parallel for reduction(+:sum, sum_sq) reduction(min:min_val) reduction(max:max_val) schedule(static)`.
+- Eliminates race conditions by allocating thread-private accumulators merged at loop boundaries.
+- Zero inter-thread message serialization overhead.
+
+### 3. MPI Distributed Implementation (`src/mpi_processing.c`)
+- Employs **1D Domain Decomposition**:
+  $$\text{local\_count} = \lfloor N / P \rfloor + (\text{rank} < N \pmod P ? 1 : 0)$$
+- Each rank allocates and processes only its local chunk, enabling execution on datasets that exceed single-machine RAM limits.
+- Uses `MPI_Reduce` for tree-based reduction of partial metrics to Rank 0.
+- Rank 0 broadcasts global mean $\mu$ to all processes via `MPI_Bcast`.
+- Second `MPI_Reduce` aggregates total filtered count to Rank 0.
+
+---
+
+## 📂 Repository Layout
+
+```text
+openmp-vs-mpi-data-processing/
+├── README.md                      # Comprehensive project documentation
+├── build.bat                      # Build script for Sequential, OpenMP & MPI
+├── run_benchmarks.py              # Automated multi-core benchmark suite
+├── generate_graphs.py             # Script generating high-resolution metric plots
+├── bin/                           # Compiled binaries & runtime libraries
+│   ├── sequential.exe             # Sequential baseline executable
+│   ├── openmp_processing.exe      # OpenMP executable
+│   ├── mpi_processing.exe         # MPI executable
+│   └── *.dll                      # Runtime dependencies (libgomp, msmpi, etc.)
+├── src/                           # C source code
+│   ├── sequential.c               # Baseline algorithm
+│   ├── openmp_processing.c        # OpenMP parallel implementation
+│   └── mpi_processing.c           # MPI distributed implementation
+├── data/                          # Dataset generation utility
+│   └── generate_dataset.py        # Generates synthetic data in CSV / binary formats
+├── results/                       # Experimental benchmarking logs
+│   ├── raw_benchmark_runs.csv     # Raw timing across all repetitions
+│   ├── benchmark_summary.csv      # Statistical summary (mean, speedup, efficiency)
+│   └── benchmark_summary.txt      # Formatted summary text table
+├── graphs/                        # Performance visualization plots
+│   ├── execution_time_vs_datasize.png
+│   ├── speedup_vs_cores.png
+│   ├── efficiency_vs_cores.png
+│   └── throughput_scalability.png
+├── report/                        # Technical project report
+│   ├── Lab_Evaluation_Report.pdf  # PDF report
+│   ├── Lab_Evaluation_Report.html # HTML report
+│   └── Lab_Evaluation_Report.md   # Markdown source report
+└── presentation/                  # Project presentation
+    └── OpenMP_vs_MPI_Data_Processing.pptx  # Slide deck
 ```
 
 ---
 
-## ⚙️ Hardware & Software Environment
+## 🛠️ Build and Execution Instructions
 
-- **Processor (CPU):** 13th Gen Intel Core i5-13420H (8 Cores, 12 Logical Processors, 2.10 GHz Base, 4.60 GHz Turbo)
-- **Host Memory:** 16 GB RAM
-- **Operating System:** Microsoft Windows 11 (64-bit)
-- **C Compiler:** MinGW-w64 GCC 8.1.0 with `-O3` optimization
-- **MPI Framework:** Microsoft MPI (MS-MPI) v10.1 (bundled in `tools/mpi/`)
-- **Python Environment:** Python 3.14 with `pandas`, `numpy`, `matplotlib`, and `python-pptx`
+### Prerequisites
+- GCC Compiler (MinGW-w64 with OpenMP support)
+- Microsoft MPI (MS-MPI v10.1 or higher)
+- Python 3.x (with `pandas`, `numpy`, `matplotlib`, `python-pptx`)
 
----
-
-## 🚀 How to Build and Run
-
-### 1. Build Executables
-Run the batch script from the repository root:
+### Step 1: Compile Executables
+Execute the provided build script from the repository root:
 ```cmd
 build.bat
 ```
-This compiles `src/sequential.c`, `src/openmp_processing.c`, and `src/mpi_processing.c` with `-O3` optimization into `bin/` and bundles required runtime DLLs.
+This generates optimized `-O3` binaries in the `bin/` directory.
 
-### 2. Run Individual Executables
+### Step 2: Run Individual Executables
 
-#### A. Sequential Baseline
+#### Sequential Baseline
 ```cmd
 bin\sequential.exe [dataset_size]
 ```
 *Example:* `bin\sequential.exe 10000000`
 
-#### B. OpenMP Parallel
+#### OpenMP Parallel Execution
 ```cmd
 bin\openmp_processing.exe [dataset_size] [num_threads]
 ```
 *Example (10M elements on 4 threads):* `bin\openmp_processing.exe 10000000 4`
 
-#### C. MPI Distributed
+#### MPI Distributed Execution
 ```cmd
 tools\mpi\bin\mpiexec.exe -n [num_processes] bin\mpi_processing.exe [dataset_size]
 ```
@@ -134,33 +175,31 @@ tools\mpi\bin\mpiexec.exe -n [num_processes] bin\mpi_processing.exe [dataset_siz
 tools\mpi\bin\mpiexec.exe -n 4 bin\mpi_processing.exe 10000000
 ```
 
-### 3. Run Automated Benchmark Suite
-To re-run all combinations (5M to 50M elements, 1 to 12 workers, 3 iterations each):
+### Step 3: Run Full Benchmark Suite
+To execute the automated benchmark across all configurations (5M to 50M elements, 1 to 12 workers, 3 runs each):
 ```cmd
 python run_benchmarks.py
 ```
-This updates `results/benchmark_summary.csv` and `results/benchmark_summary.txt`.
 
-### 4. Regenerate Graphs
+### Step 4: Generate Graphs
 ```cmd
 python generate_graphs.py
 ```
 
-### 5. Regenerate Presentation & Reports
-```cmd
-python tools\build_presentation.py
-python tools\generate_report.py
-```
+---
+
+## 📊 Experimental Results & Performance Analysis
+
+### Hardware Benchmark Platform
+- **Processor:** 13th Gen Intel Core i5-13420H (8 Cores, 12 Threads)
+- **Memory:** 16 GB RAM
+- **Operating System:** Microsoft Windows 11 (64-bit)
 
 ---
 
-## 📊 Results Summary
+### Benchmark Data (50 Million Elements - Largest Scale)
 
-All runs were repeated **3 times**; average execution times are shown below.
-
-### Execution Results (50 Million Elements - Largest Scale)
-
-| Paradigm | Workers ($P$) | Execution Time (ms) | Speedup ($S$) | Efficiency ($E$) | Throughput (M-items/sec) |
+| Implementation | Workers ($P$) | Execution Time (ms) | Speedup ($S$) | Parallel Efficiency ($E$) | Throughput (M-items/sec) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Sequential Baseline** | **1** | **81.965 ms** | **1.00x** | **100.00%** | **610.02** |
 | **OpenMP** | 1 | 87.514 ms | 0.94x | 93.66% | 571.33 |
@@ -174,7 +213,9 @@ All runs were repeated **3 times**; average execution times are shown below.
 | **MPI** | 8 | 26.375 ms | 3.11x | 38.85% | 1,895.76 |
 | **MPI** | 12 | 24.002 ms | **3.42x** | 28.46% | **2,083.19** |
 
-### Execution Time vs Dataset Size (at 4 Workers)
+---
+
+### Scaling Across Dataset Sizes (at 4 Workers)
 
 | Dataset Size | Sequential Baseline | OpenMP (4 Threads) | MPI (4 Processes) |
 | :---: | :---: | :---: | :---: |
@@ -185,73 +226,47 @@ All runs were repeated **3 times**; average execution times are shown below.
 
 ---
 
-## 📈 Visual Performance Analysis
+## 📈 Performance Visualizations
 
 ### 1. Execution Time Comparison
 ![Execution Time vs Dataset Size](graphs/execution_time_vs_datasize.png)
-*Figure 1: Wall-clock execution time vs Dataset Size. Both OpenMP and MPI consistently cut execution latency across all dataset scales.*
+*Figure 1: Wall-clock execution time across dataset sizes. Parallel models consistently demonstrate significant latency reductions.*
 
 ### 2. Speedup vs Number of Workers
 ![Speedup vs Cores](graphs/speedup_vs_cores.png)
-*Figure 2: Scaling speedup vs Worker Concurrency. Near-linear scaling up to 4 cores, peaking at 8-12 cores at ~3.4x speedup due to memory bus saturation.*
+*Figure 2: Scaling speedup vs Worker Concurrency. Near-linear acceleration up to 4 cores, reaching peak speedup of ~3.4x.*
 
 ### 3. Parallel Efficiency
 ![Parallel Efficiency vs Cores](graphs/efficiency_vs_cores.png)
-*Figure 3: Resource efficiency remains high (>75-89%) at 2-4 cores, dropping smoothly as SMT hyperthreads share core execution pipelines.*
+*Figure 3: Parallel efficiency remains high (>75-89%) at 2-4 cores and gradually levels off as SMT hyperthreads share execution pipelines.*
 
 ### 4. Throughput Scalability
 ![Throughput Scalability](graphs/throughput_scalability.png)
-*Figure 4: Aggregate processing throughput increases from 610 Million elements/sec (Sequential) to over 2.08 Billion elements/sec (MPI 12 Procs).*
+*Figure 4: Data processing throughput increases from 610 Million elements/sec up to over 2.08 Billion elements/sec.*
 
 ---
 
-## ⚖️ Architectural Comparison: OpenMP vs MPI
+## 💡 Key Findings & Architectural Insights
 
-| Feature | OpenMP | MPI | Sequential |
+1. **Low Overhead of OpenMP:**  
+   OpenMP demonstrates minimal startup latency on shared-memory nodes because threads reuse the existing virtual address space without memory duplication.
+2. **Domain Decomposition Scalability in MPI:**  
+   MPI achieves high throughput at large data scales (50M elements) because domain decomposition gives each process its own isolated memory chunk, optimizing L2/L3 cache utilization.
+3. **Memory Bandwidth Bottleneck:**  
+   Both paradigms experience speedup saturation beyond 8 cores. For streaming vector data processing, the shared memory bus bandwidth becomes the governing constraint (as described by Amdahl's Law and the Roofline model).
+4. **Numerical Precision Consistency:**  
+   All three implementations yield bitwise identical output values, confirming correctness across reduction and filtering passes.
+
+---
+
+## ⚖️ Architectural Comparison Summary
+
+| Parameter | Sequential | OpenMP | MPI |
 | :--- | :--- | :--- | :--- |
-| **Model** | Shared Memory Multi-threading | Distributed Memory Message Passing | Single-threaded |
-| **Address Space** | Uniform shared memory | Private isolated memory per rank | Single process memory |
-| **Communication** | Implicit (Shared RAM) | Explicit (`MPI_Reduce`, `MPI_Bcast`) | None |
-| **Synchronization** | Directives (`#pragma omp barrier`) | Collectives (`MPI_Barrier`, etc.) | None |
-| **Programming Difficulty** | Low (Incremental pragmas) | Moderate/High (Domain decomposition) | Minimal |
-| **Peak 50M Speedup** | **3.27x** (8 Threads) | **3.42x** (12 Processes) | 1.00x |
-| **Scaling Limit** | Limited by single node RAM & cores | Scales across supercomputer clusters | Single CPU core |
-
----
-
-## 🎓 Checkpoint 5: Technical Viva Voce Questions & Answers
-
-### Q1: What is the fundamental architectural difference between OpenMP and MPI?
-> **Answer:**  
-> **OpenMP** follows a **Shared Memory** model where all threads reside within the same operating system process and communicate implicitly via reads and writes to shared virtual memory.  
-> **MPI** follows a **Distributed Memory (Shared-Nothing)** model where each process maintains its own private address space and communicates explicitly over a message-passing layer using function calls (`MPI_Send`, `MPI_Recv`, `MPI_Reduce`, `MPI_Bcast`).
-
-### Q2: Why did MPI require `MPI_Bcast` between Pass 1 and Pass 2?
-> **Answer:**  
-> In Pass 1, all MPI ranks perform local reductions and reduce their sums to Rank 0 (`MPI_Reduce`). Rank 0 computes the dataset mean $\mu = \text{Sum} / N$. However, because MPI processes cannot inspect Rank 0's private memory, Rank 0 must broadcast $\mu$ to all other ranks via `MPI_Bcast` so they can filter their local partitions in Pass 2. In OpenMP, this broadcast is unnecessary because $\mu$ is stored in shared RAM, readable by all threads immediately.
-
-### Q3: Why does speedup plateau beyond 8 cores on this CPU?
-> **Answer:**  
-> 1. **Core Topology:** The Intel Core i5-13420H has 8 physical cores and 12 logical threads (SMT/hyperthreading). Hyperthreads share physical ALU and vector execution units, providing lower incremental gains than physical cores.  
-> 2. **Memory Bandwidth Bottleneck:** Array reductions and filtering are memory-bound streaming operations. Once the CPU's memory controllers and bus bandwidth are saturated, adding more worker threads cannot accelerate data transfer from RAM.
-
-### Q4: How does OpenMP prevent race conditions in parallel reductions?
-> **Answer:**  
-> Through the `reduction(+:variable)` clause. The compiler generates thread-private accumulators for each thread. Each thread accumulates into its local variable without locks. At the end of the parallel loop, OpenMP merges the private accumulators into the shared variable using atomic hardware instructions or a binary reduction tree.
-
-### Q5: What is Amdahl's Law, and how does it relate to your measured results?
-> **Answer:**  
-> Amdahl's Law states that maximum speedup is bounded by the serial fraction $s$:
-> $$S_{max} = \frac{1}{s + \frac{1 - s}{P}}$$
-> In our code, serial portions include process creation, global mean division, and barrier synchronization. As $P \to \infty$, speedup asymptotically approaches $1/s$.
-
----
-
-## 📦 Submission Deliverables Checklist
-- [x] **Checkpoint 1:** Mathematical definition, sequential algorithm & parallel architecture design.
-- [x] **Checkpoint 2:** Tested, bitwise-identical C implementations for Sequential, OpenMP, and MPI.
-- [x] **Checkpoint 3:** Complete benchmark runs across 5M, 10M, 25M, and 50M elements on 1 to 12 workers.
-- [x] **Checkpoint 4:** 4 high-resolution graphs for execution time, speedup, efficiency, and throughput.
-- [x] **Checkpoint 5:** Full technical viva preparation guide and final demonstration readiness.
-- [x] **Presentation:** 13-slide PowerPoint slide deck in `presentation/OpenMP_vs_MPI_Data_Processing.pptx`.
-- [x] **Report:** Academic Markdown report, HTML report, and PDF report in `report/`.
+| **Programming Paradigm** | Single-threaded | Multi-threaded Directives | Message-Passing APIs |
+| **Memory Model** | Single address space | Shared memory (SMP) | Distributed (Shared-nothing) |
+| **Communication Mechanism** | None (Direct access) | Implicit (Shared RAM) | Explicit (`MPI_Reduce`, `MPI_Bcast`) |
+| **Domain Partitioning** | None | Automatic loop scheduling | Manual 1D domain decomposition |
+| **Scalability Bound** | 1 Core | Single node cores & RAM | Multi-node cluster interconnects |
+| **Peak 50M Speedup** | 1.00x | **3.27x** (8 Threads) | **3.42x** (12 Processes) |
+| **Peak Throughput** | 610 M items/sec | 1,992 M items/sec | 2,083 M items/sec |
