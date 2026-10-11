@@ -35,8 +35,10 @@ def get_base64_img(img_name):
 def create_markdown_report():
     md_content = """# Comparative Performance Analysis of OpenMP vs. MPI for Large-Scale Data Processing
 
-**Author:** Vinay Hiremath  
-**Domain:** Parallel & Distributed Computing  
+**Author / Student Name:** Vinay V Hiremath  
+**USN / Roll Number:** 01FE24BCI069  
+**Department:** Computer Science & Engineering [AI]  
+**Course:** Parallel Computing  
 **Topic:** OpenMP vs MPI for Data Processing  
 **Implementation:** C (GCC -O3) + OpenMP + MS-MPI  
 
@@ -300,7 +302,7 @@ def create_html_and_pdf_report():
 
 <div class="header-box">
     <h1>Comparative Performance Analysis of OpenMP vs. MPI for Data Processing</h1>
-    <p><strong>Author:</strong> Vinay Hiremath | Parallel & Distributed Computing</p>
+    <p><strong>Author:</strong> Vinay V Hiremath (USN: 01FE24BCI069) | Department of Computer Science & Engineering [AI]</p>
     <p><strong>Benchmarked System:</strong> 13th Gen Intel Core i5-13420H (8 Cores, 12 Threads) | Windows 11</p>
 </div>
 

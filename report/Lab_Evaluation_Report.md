@@ -1,7 +1,9 @@
 # Comparative Performance Analysis of OpenMP vs. MPI for Large-Scale Data Processing
 
-**Author:** Vinay Hiremath  
-**Domain:** Parallel & Distributed Computing  
+**Author / Student Name:** Vinay V Hiremath  
+**USN / Roll Number:** 01FE24BCI069  
+**Department:** Computer Science & Engineering [AI]  
+**Course:** Parallel Computing  
 **Topic:** OpenMP vs MPI for Data Processing  
 **Implementation:** C (GCC -O3) + OpenMP + MS-MPI  
 

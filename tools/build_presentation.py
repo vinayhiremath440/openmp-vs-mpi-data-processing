@@ -105,7 +105,7 @@ def create_title_slide(prs):
     p2.space_after = Pt(25)
 
     p3 = tf.add_paragraph()
-    p3.text = "Author: Vinay Hiremath\nDomain: Parallel & Distributed Computing\nTheme: OpenMP vs MPI for Data Processing"
+    p3.text = "Author: Vinay V Hiremath (USN: 01FE24BCI069)\nDepartment: Computer Science & Engineering [AI]\nTopic: OpenMP vs MPI for Data Processing"
     p3.font.size = Pt(11)
     p3.font.color.rgb = RGBColor(164, 176, 190)
 

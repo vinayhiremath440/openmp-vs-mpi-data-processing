@@ -5,8 +5,10 @@ A high-performance computing project benchmarking shared-memory multi-threading 
 ---
 
 ## 👨‍💻 Project Overview
-- **Author:** Vinay Hiremath
-- **Domain:** Parallel & Distributed Computing
+- **Author / Student Name:** Vinay V Hiremath
+- **USN / Roll Number:** 01FE24BCI069
+- **Department:** Computer Science & Engineering (Artificial Intelligence)
+- **Course:** Parallel Computing
 - **Parallel Models:** OpenMP (Shared Memory SMP) vs. MPI (Distributed Memory Message Passing)
 - **Primary Language:** C (GCC with `-O3` optimization)
 - **Runtime Environment:** Microsoft Windows 11 (64-bit), MinGW-w64, Microsoft MPI (MS-MPI)
