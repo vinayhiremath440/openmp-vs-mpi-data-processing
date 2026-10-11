@@ -18,6 +18,8 @@ REPORT_DIR = os.path.join(WORKSPACE_DIR, "report")
 GRAPHS_DIR = os.path.join(WORKSPACE_DIR, "graphs")
 RESULTS_DIR = os.path.join(WORKSPACE_DIR, "results")
 
+SCREENSHOTS_DIR = os.path.join(WORKSPACE_DIR, "screenshots")
+
 os.makedirs(REPORT_DIR, exist_ok=True)
 
 MD_PATH = os.path.join(REPORT_DIR, "Lab_Evaluation_Report.md")
@@ -26,6 +28,8 @@ PDF_PATH = os.path.join(REPORT_DIR, "Lab_Evaluation_Report.pdf")
 
 def get_base64_img(img_name):
     img_path = os.path.join(GRAPHS_DIR, img_name)
+    if not os.path.exists(img_path):
+        img_path = os.path.join(SCREENSHOTS_DIR, img_name)
     if os.path.exists(img_path):
         with open(img_path, "rb") as f:
             encoded = base64.b64encode(f.read()).decode("utf-8")
@@ -173,7 +177,23 @@ The pipeline executes two computational passes over $D$:
 
 ---
 
-## 6. Conclusion
+## 6. Execution & Verification Terminal Screenshots
+
+### 6.1 Host System Architecture & Environment
+![System Environment](../screenshots/01_system_environment.png)
+
+### 6.2 Build & Compilation Log
+![Build Compilation](../screenshots/02_build_compilation.png)
+
+### 6.3 Execution Output & Metric Verification
+![Execution Verification](../screenshots/03_execution_verification.png)
+
+### 6.4 Multi-Scale Benchmark Suite
+![Benchmark Suite](../screenshots/04_benchmark_suite.png)
+
+---
+
+## 7. Conclusion
 
 Both OpenMP and MPI successfully accelerated the data processing workload, achieving over **3.2x-3.4x speedup** compared to the sequential baseline. OpenMP provides lower development friction and minimal overhead for multi-core workstations, while MPI enables horizontal scaling across distributed computing clusters.
 """
@@ -186,6 +206,7 @@ def create_html_and_pdf_report():
     img_speedup = get_base64_img("speedup_vs_cores.png")
     img_eff = get_base64_img("efficiency_vs_cores.png")
     img_tp = get_base64_img("throughput_scalability.png")
+    img_exec_term = get_base64_img("03_execution_verification.png")
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -475,6 +496,14 @@ MPI_Reduce(&amp;local_above_count, &amp;global_above_count, 1, MPI_LONG_LONG, MP
     <li><strong>Cache Locality & Isolation:</strong> MPI performs well at 50M elements because 1D domain decomposition ensures each process works within its isolated L2/L3 cache footprint.</li>
     <li><strong>Efficiency Balance:</strong> Parallel efficiency remains above 75% at 4 cores, identifying 4-8 workers as the optimal operational point.</li>
 </ol>
+
+<div class="page-break"></div>
+
+<h2>5. Program Execution & Verification Screenshots</h2>
+<div class="img-card" style="margin-top: 15px;">
+    <img src="{img_exec_term}" alt="Execution Output Verification">
+    <div class="img-caption">Figure 5: Active Terminal Output Verification across Sequential, OpenMP, and MPI</div>
+</div>
 
 </body>
 </html>

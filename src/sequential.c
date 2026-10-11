@@ -25,6 +25,8 @@ int main(int argc, char* argv[]) {
     }
 
     printf("====================================================\n");
+    printf(" Student: Vinay V Hiremath (USN: 01FE24BCI069)\n");
+    printf(" Topic 9: OpenMP vs MPI for Data Processing\n");
     printf(" Sequential Baseline Data Processing\n");
     printf(" Dataset Size: %lld elements\n", N);
     printf("====================================================\n");

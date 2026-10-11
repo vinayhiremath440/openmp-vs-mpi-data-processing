@@ -16,6 +16,7 @@ from pptx.enum.shapes import MSO_SHAPE
 
 WORKSPACE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GRAPHS_DIR = os.path.join(WORKSPACE_DIR, "graphs")
+SCREENSHOTS_DIR = os.path.join(WORKSPACE_DIR, "screenshots")
 PRESENTATION_DIR = os.path.join(WORKSPACE_DIR, "presentation")
 OUTPUT_PPTX = os.path.join(PRESENTATION_DIR, "OpenMP_vs_MPI_Data_Processing.pptx")
 
@@ -144,6 +145,8 @@ def create_image_slide(prs, title, image_name, bullet_points):
     add_header(slide, title)
 
     img_path = os.path.join(GRAPHS_DIR, image_name)
+    if not os.path.exists(img_path):
+        img_path = os.path.join(SCREENSHOTS_DIR, image_name)
     if os.path.exists(img_path):
         slide.shapes.add_picture(img_path, Inches(0.8), Inches(1.3), Inches(5.0), Inches(3.8))
 
@@ -295,8 +298,15 @@ def build_presentation():
         ("Optimal Operating Point", "4 to 8 workers represent the sweet spot for maximizing speedup without excessive parallel overhead.")
     ])
 
-    # Slide 11: Summary Comparison Table
-    create_table_slide(prs, "10. Comprehensive Comparison: OpenMP vs MPI", [
+    # Slide 11: Program Execution & Result Verification
+    create_image_slide(prs, "10. Program Execution & Verification", "03_execution_verification.png", [
+        ("Identical Numerical Outputs", "All three models (Sequential, OpenMP, MPI) produce bitwise identical Sum, Mean, Min, Max, and Count > Mean."),
+        ("Latency Reductions (10M)", "Execution latency reduced from 15.69 ms (Sequential) to 6.77 ms (OpenMP 4T) and 6.98 ms (MPI 4P)."),
+        ("Student Identity Verification", "Active terminal outputs demonstrate runs attributed to Vinay V Hiremath (USN: 01FE24BCI069).")
+    ])
+
+    # Slide 12: Summary Comparison Table
+    create_table_slide(prs, "11. Comprehensive Comparison: OpenMP vs MPI", [
         "Feature / Metric", "OpenMP (Shared Memory)", "MPI (Distributed Memory)", "Sequential Baseline"
     ], [
         ["Hardware Model", "Multi-core CPU (SMP / Shared RAM)", "Cluster / Multi-node / Distributed", "Single CPU Core"],
@@ -310,16 +320,16 @@ def build_presentation():
         ["Best Used For", "Local compute-heavy loops & SMP", "Large clusters & Big Data HPC", "Small / single-threaded tasks"]
     ])
 
-    # Slide 12: Architectural Discussion & Scalability Insights
-    create_bullet_slide(prs, "11. Architectural Discussion & Scalability Insights", [
+    # Slide 13: Architectural Discussion & Scalability Insights
+    create_bullet_slide(prs, "12. Architectural Discussion & Scalability Insights", [
         ("Shared vs. Distributed Memory Trade-offs", "OpenMP excels on single-node SMP systems with zero message serialization overhead. MPI provides superior cache isolation through 1D domain decomposition."),
         ("Collective Communication Latency", "MPI requires explicit synchronization (MPI_Bcast, MPI_Reduce) using binomial spanning trees with O(log P) complexity to distribute and reduce variables."),
         ("Memory Bus & Roofline Limits", "Speedup saturation beyond 8 cores is governed by memory bandwidth limits on the host memory controller when processing contiguous floating-point streams."),
         ("Heterogeneous Core Scaling", "Intel hybrid architectures (P-cores vs E-cores) and hyperthreading (SMT) deliver diminishing efficiency returns compared to dedicated physical execution units.")
     ])
 
-    # Slide 13: Conclusion & Future Scope
-    create_bullet_slide(prs, "12. Conclusion & Future Scope", [
+    # Slide 14: Conclusion & Future Scope
+    create_bullet_slide(prs, "13. Conclusion & Future Scope", [
         ("Key Conclusion 1", "Both OpenMP and MPI successfully accelerated the data processing workload, achieving >3.2x-3.4x speedup over the sequential baseline."),
         ("Key Conclusion 2", "OpenMP provides simple syntax and excellent developer ergonomics for shared-memory workstations with zero message-passing overhead."),
         ("Key Conclusion 3", "MPI provides superior memory scalability and cache locality via domain decomposition, making it indispensable for distributed big data clusters."),

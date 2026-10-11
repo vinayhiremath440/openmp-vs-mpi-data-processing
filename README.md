@@ -248,6 +248,26 @@ python generate_graphs.py
 
 ---
 
+## 📸 Execution & Verification Screenshots
+
+### 1. System Environment & Toolchain Verification
+Host system architecture (Intel Core i5-13420H, 8 Cores / 12 Threads, 16 GB RAM), GCC MinGW-w64 compiler, and Microsoft MPI distributed runtime.
+![System Environment](screenshots/01_system_environment.png)
+
+### 2. Build & Compilation via `build.bat`
+Compiling Sequential Baseline, OpenMP Parallel, and MPI Distributed binaries with `-O3` optimization level and packaging runtime DLLs.
+![Build & Compilation](screenshots/02_build_compilation.png)
+
+### 3. Program Execution & Output Verification
+Executing Sequential Baseline, OpenMP Parallel (4 Threads), and MPI Distributed (4 Processes) on 10 Million elements, showing exact bitwise matching metrics and execution speedup.
+![Execution & Result Verification](screenshots/03_execution_verification.png)
+
+### 4. Automated Multi-Scale Benchmark Suite
+Execution of `run_benchmarks.py` across 5M to 50M records and 1 to 12 workers with 3 repetitions, followed by automated graph generation.
+![Benchmark Suite & Plotting](screenshots/04_benchmark_suite.png)
+
+---
+
 ## 💡 Key Findings & Architectural Insights
 
 1. **Low Overhead of OpenMP:**  

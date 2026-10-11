@@ -36,6 +36,8 @@ int main(int argc, char* argv[]) {
     omp_set_num_threads(num_threads);
 
     printf("====================================================\n");
+    printf(" Student: Vinay V Hiremath (USN: 01FE24BCI069)\n");
+    printf(" Topic 9: OpenMP vs MPI for Data Processing\n");
     printf(" OpenMP Parallel Data Processing\n");
     printf(" Dataset Size: %lld elements\n", N);
     printf(" Threads:      %d\n", num_threads);

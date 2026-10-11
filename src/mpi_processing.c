@@ -98,6 +98,8 @@ int main(int argc, char* argv[]) {
         double std_dev = sqrt(variance);
 
         printf("====================================================\n");
+        printf(" Student: Vinay V Hiremath (USN: 01FE24BCI069)\n");
+        printf(" Topic 9: OpenMP vs MPI for Data Processing\n");
         printf(" MPI Distributed Data Processing\n");
         printf(" Dataset Size: %lld elements\n", N);
         printf(" MPI Processes: %d\n", num_procs);

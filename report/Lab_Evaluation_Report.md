@@ -138,6 +138,22 @@ The pipeline executes two computational passes over $D$:
 
 ---
 
-## 6. Conclusion
+## 6. Execution & Verification Terminal Screenshots
+
+### 6.1 Host System Architecture & Environment
+![System Environment](../screenshots/01_system_environment.png)
+
+### 6.2 Build & Compilation Log
+![Build Compilation](../screenshots/02_build_compilation.png)
+
+### 6.3 Execution Output & Metric Verification
+![Execution Verification](../screenshots/03_execution_verification.png)
+
+### 6.4 Multi-Scale Benchmark Suite
+![Benchmark Suite](../screenshots/04_benchmark_suite.png)
+
+---
+
+## 7. Conclusion
 
 Both OpenMP and MPI successfully accelerated the data processing workload, achieving over **3.2x-3.4x speedup** compared to the sequential baseline. OpenMP provides lower development friction and minimal overhead for multi-core workstations, while MPI enables horizontal scaling across distributed computing clusters.

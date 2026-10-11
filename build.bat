@@ -18,7 +18,7 @@ if %errorlevel% neq 0 (
     echo [ERROR] Failed to compile sequential.c
     exit /b 1
 )
-echo    -> Successfully created bin\sequential.exe
+echo    [OK] Successfully created bin\sequential.exe
 
 rem 2. OpenMP Compilation
 echo [2/3] Compiling OpenMP Parallel (src/openmp_processing.c)...
@@ -27,7 +27,7 @@ if %errorlevel% neq 0 (
     echo [ERROR] Failed to compile openmp_processing.c
     exit /b 1
 )
-echo    -> Successfully created bin\openmp_processing.exe
+echo    [OK] Successfully created bin\openmp_processing.exe
 
 rem 3. MPI Compilation
 echo [3/3] Compiling MPI Distributed (src/mpi_processing.c)...
@@ -36,7 +36,7 @@ if %errorlevel% neq 0 (
     echo [ERROR] Failed to compile mpi_processing.c
     exit /b 1
 )
-echo    -> Successfully created bin\mpi_processing.exe
+echo    [OK] Successfully created bin\mpi_processing.exe
 
 rem 4. Copy required runtime DLLs to bin for portable execution
 if exist "tools\mpi\bin\msmpi.dll" copy /y "tools\mpi\bin\msmpi.dll" "bin\" >nul
